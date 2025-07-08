@@ -5,5 +5,5 @@ import(
 )
 
 type Handler struct {
-	Srv *service.TodoService
+	Service *service.Service
 }

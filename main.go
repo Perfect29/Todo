@@ -1,8 +1,8 @@
 package main
 
 import (
-	// "context"
-	// "log"
+	"context"
+	"log"
 
 	"github.com/Perfect29/Server/cmd/api/handlers"
 	"github.com/Perfect29/Server/cmd/api/service"
@@ -11,22 +11,29 @@ import (
 )
 
 func main() {
-	// db, err := service.InitDB(context.Background())
-	// if err != nil {
-	// 	log.Fatal("Unable to connect to database:", err)
-	// }
-	// defer db.Close(context.Background())
-	
-	todoService := &service.TodoService{}
+	ctx := context.Background()
+
+	dbService, err := service.InitDB(ctx)
+	if err != nil {
+		log.Fatal("Unable to connect to database:", err)
+	}
+	defer dbService.Close(ctx)
+
+	cacheService := service.NewCacheService()
+
+	todoService := &service.Service{
+		DB:    dbService.DB, 
+		Cache: cacheService,
+	}
 	h := &handlers.Handler{
-		Srv: todoService,
+		Service: todoService,
 	}
 
 	e := echo.New()
 	e.POST("/add",h.AddHandler)
 	e.DELETE("/remove/:id", h.RemoveHandler)
 	e.GET("/showlist", h.ShowlistHandler)
+	e.GET("/get/:id", h.GetHandler)
 
 	e.Logger.Fatal(e.Start(":1323"))
-
 }
