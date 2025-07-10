@@ -1,6 +1,7 @@
 package service
 
 import (
+	log "github.com/sirupsen/logrus"
 	"context"
 	"github.com/jackc/pgx/v5"
 )
@@ -15,5 +16,6 @@ func InitDB(ctx context.Context) (*PostgresRepository, error){
 	if err != nil {
 		return nil, err
 	}
+	log.Info("Database Repository was successfully created")
 	return NewPostgresRepository(conn), nil
 }

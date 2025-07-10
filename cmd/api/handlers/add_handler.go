@@ -5,11 +5,13 @@ import (
 
 	"github.com/Perfect29/Server/cmd/api/service"
 	"github.com/labstack/echo"
+	log "github.com/sirupsen/logrus"
 )
 
 func (h *Handler) AddHandler(c echo.Context) error {
 	var todo service.Todo 
 	if err := c.Bind(&todo); err != nil {
+		log.Error("Invalid Request to add todo", err)
 		res := make(map[string]string)
 		res["error"] = "Invalid Request"
 		return c.JSON(http.StatusBadRequest, res)

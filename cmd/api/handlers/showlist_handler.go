@@ -1,15 +1,13 @@
 package handlers
 
 import (
-	"context"
-
 	"github.com/labstack/echo"
-
+	
 	"net/http"
 )
 
 func (h *Handler) ShowlistHandler(c echo.Context) error {
-	todos, err := h.todoUsecase.ShowListTodo(context.Background())
+	todos, err := h.todoUsecase.ShowListTodo(c.Request().Context())
 
 	if err != nil {
 		res := make(map[string]string)

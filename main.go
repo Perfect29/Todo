@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"log"
 
 	"github.com/Perfect29/Server/cmd/api/handlers"
 	"github.com/Perfect29/Server/cmd/api/service"
 	"github.com/labstack/echo"
 	_ "github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
