@@ -5,5 +5,11 @@ import(
 )
 
 type Handler struct {
-	Service *service.Service
+	todoUsecase *service.TodoUsecase
+}
+
+func NewHandler(todoUsecase *service.TodoUsecase) *Handler {
+	return &Handler{
+		todoUsecase: todoUsecase,
+	}
 }

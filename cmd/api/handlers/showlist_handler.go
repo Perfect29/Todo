@@ -9,7 +9,7 @@ import (
 )
 
 func (h *Handler) ShowlistHandler(c echo.Context) error {
-	todos, err := h.Service.ShowListTodo(context.Background())
+	todos, err := h.todoUsecase.ShowListTodo(context.Background())
 
 	if err != nil {
 		res := make(map[string]string)

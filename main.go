@@ -13,21 +13,18 @@ import (
 func main() {
 	ctx := context.Background()
 
-	dbService, err := service.InitDB(ctx)
+
+	postgresRepo, err := service.InitDB(ctx)
 	if err != nil {
-		log.Fatal("Unable to connect to database:", err)
+		log.Fatal("Could not connect to Database", err)
 	}
-	defer dbService.Close(ctx)
+	cacheRepo := service.NewCacheRepository()
 
-	cacheService := service.NewCacheService()
-
-	todoService := &service.Service{
-		DB:    dbService.DB, 
-		Cache: cacheService,
+	todoUsecase := service.TodoUsecase{
+		Repo: postgresRepo,
+		Cache: cacheRepo,
 	}
-	h := &handlers.Handler{
-		Service: todoService,
-	}
+	h := handlers.NewHandler(&todoUsecase)
 
 	e := echo.New()
 	e.POST("/add",h.AddHandler)

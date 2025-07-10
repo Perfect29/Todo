@@ -1,4 +1,4 @@
-version: '3'
+version: '2.4'
 
 services:
   redis:
@@ -31,8 +31,10 @@ services:
     ports:
       - "1323:1323"
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgres://postgres:pass@db:5432/postgres?sslmode=disable
       REDIS_ADDR: redis:6379

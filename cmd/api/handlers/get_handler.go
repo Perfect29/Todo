@@ -17,7 +17,7 @@ func (h *Handler) GetHandler(c echo.Context) error {
 		res["error"] = "Bad Request"
 		return c.JSON(http.StatusBadRequest, res)
 	}
-	todo, err := h.Service.GetByID(context.Background(), idx)
+	todo, err := h.todoUsecase.GetByID(context.Background(), idx)
 
 	if err != nil {
 		res := make(map[string]string)

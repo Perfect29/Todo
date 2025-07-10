@@ -186,3 +186,164 @@ func TestTodoUseCase_AddTodo(t *testing.T) {
 		})
 	}
 } 
+
+func TestTodoUseCase_ShowListTodo(t *testing.T) {
+	var tests = []struct {
+		name string
+		input context.Context
+		mockSetup func(repo *mock.TodoRepositoryMock, ctx context.Context)
+		wantErr bool
+		wantResult service.ToDoList
+	} {
+		{
+			name: "Empty List",
+			input: context.Background(),
+			mockSetup: func(repo *mock.TodoRepositoryMock, ctx context.Context) {
+				repo.On("ShowListTodo", context.Background()).Return(nil, nil)
+			},
+			wantErr: false,
+			wantResult: nil,
+		},
+
+		{
+			name: "List of 1 element",
+			input: context.Background(),
+			mockSetup: func(repo *mock.TodoRepositoryMock, ctx context.Context) {
+				repo.On("ShowListTodo", context.Background()).Return(service.ToDoList{
+					service.Todo{
+						Name: "GYM",
+						Description: "Do 5 push ups",
+						ID: 2,
+					},
+				}, nil)
+			},
+			wantErr: false,
+			wantResult: service.ToDoList{
+				service.Todo{
+					Name: "GYM",
+					Description: "Do 5 push ups",
+					ID: 2,
+				},
+			},
+		},
+
+		{
+			name: "Error case",
+			input: context.Background(),
+			mockSetup: func(repo *mock.TodoRepositoryMock, ctx context.Context) {
+				repo.On("ShowListTodo", context.Background()).Return(nil, errors.New("Could not show TodoList"))
+			},
+			wantErr: true,
+			wantResult: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t * testing.T) {
+			t.Parallel()
+			repo := new(mock.TodoRepositoryMock)
+
+			u := service.TodoUsecase{
+				Repo: repo,
+				Cache: nil,
+			}
+
+			tt.mockSetup(repo, tt.input)
+
+			list, err := u.ShowListTodo(context.Background())
+
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+
+			assert.Equal(t, tt.wantResult, list)
+			repo.AssertExpectations(t)
+		})
+	}
+}
+
+func TestTodoUseCase_RemoveTodo(t *testing.T) {
+	type args struct {
+		ctx context.Context
+		id int
+	}
+
+	var tests = []struct{
+		name string
+		args args
+		mockSetup func(repo *mock.TodoRepositoryMock, cache *mock.CacheMock, args args) 
+		wantErr bool
+	} {
+		{
+			name: "repo and cache hit",
+			args: args{
+				ctx: context.Background(),
+				id: 1,
+			},
+			mockSetup: func(repo *mock.TodoRepositoryMock, cache *mock.CacheMock, args args) {
+				repo.On("RemoveTodo", args.ctx, args.id).Return(nil)
+				cache.On("DeleteTodo", args.ctx, args.id).Return(nil)
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "repo hit and cache error",
+			args: args{
+				ctx: context.Background(),
+				id: 2,
+			},
+			mockSetup: func(repo *mock.TodoRepositoryMock, cache *mock.CacheMock, args args) {
+				repo.On("RemoveTodo", args.ctx, args.id).Return(nil)
+				cache.On("DeleteTodo", args.ctx, args.id).Return(errors.New("Cache miss"))
+			},
+			wantErr: false,
+		},
+
+		{
+			name: "repo error",
+			args: args{
+				ctx: context.Background(),
+				id: 3,
+			},
+			mockSetup: func(repo *mock.TodoRepositoryMock, cache *mock.CacheMock, args args) {
+				repo.On("RemoveTodo", args.ctx, args.id).Return(errors.New("Repo miss"))
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			repo := new(mock.TodoRepositoryMock)
+			cache := new(mock.CacheMock)
+
+			u := service.TodoUsecase{
+				Repo: repo,
+				Cache: cache,
+			}
+
+			tt.mockSetup(repo, cache, tt.args)
+
+			err := u.RemoveTodo(tt.args.ctx, tt.args.id)
+
+			if tt.wantErr {
+				require.Error(t, err)
+				if (tt.name == "repo error") {
+					cache.AssertNotCalled(t, "DeleteTodo", tt.args.ctx, tt.args.id)
+				}
+			} else {
+				require.NoError(t, err)
+			}
+
+			repo.AssertExpectations(t)
+			cache.AssertExpectations(t)
+		})
+	}
+}

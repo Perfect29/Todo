@@ -15,7 +15,7 @@ func (h *Handler) AddHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, res)
 	}
 
-	err :=  h.Service.AddTodo(c.Request().Context(), &todo)
+	err :=  h.todoUsecase.AddTodo(c.Request().Context(), &todo)
 	if err != nil {
 		res := make(map[string]string)
 		res["error"] = "Failed to add todo"

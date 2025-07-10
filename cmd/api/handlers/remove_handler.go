@@ -16,7 +16,7 @@ func (h *Handler) RemoveHandler(c echo.Context) error {
 		res["error"] = "Invalid id parameter"
 		return c.JSON(http.StatusBadRequest, res)
 	}
-	err = h.Service.RemoveTodo(context.Background(), idx)
+	err = h.todoUsecase.RemoveTodo(context.Background(), idx)
 	res := make(map[string]any)
 	res["message"] = "todo deleted"
 	if err != nil {
